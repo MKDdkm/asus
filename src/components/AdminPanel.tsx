@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
 import { 
   Users, 
   CreditCard, 
@@ -19,7 +20,8 @@ import {
   Clock,
   DollarSign,
   FileText,
-  RefreshCw
+  RefreshCw,
+  Database
 } from "lucide-react";
 
 interface Application {
@@ -245,6 +247,12 @@ const AdminPanel: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-2">
+          <Link to="/admin/data-viewer">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Database size={16} className="mr-2" />
+              View Database
+            </Button>
+          </Link>
           <Button onClick={broadcastNotification} className="bg-purple-600 hover:bg-purple-700">
             <Bell size={16} className="mr-2" />
             {language === 'en' ? 'Broadcast' : 'ಪ್ರಸಾರ'}

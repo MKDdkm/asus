@@ -17,6 +17,7 @@ import AdminPage from "./pages/AdminPage";
 import CitizensPage from "./pages/CitizensPage";
 import DashboardPage from "./pages/DashboardPage";
 import FeedbackPage from "./pages/FeedbackPage";
+import DataViewer from "./pages/DataViewer";
 import NotFound from "./pages/NotFound";
 import AISahayak from "./components/AISahayak";
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/notifications" element={<NotificationPage />} />
               <Route path="/payments" element={<PaymentPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/data-viewer" element={<DataViewer />} />
               <Route path="/citizens" element={<CitizensPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/feedback/:applicationId" element={<FeedbackPage />} />
