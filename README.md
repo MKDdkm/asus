@@ -1,8 +1,14 @@
-# Welcome to your Lovable project
+# Karnataka Mitra - AI Government Services Platform
+
+## Live Deployment
+
+**Frontend**: https://asus-amber.vercel.app
+**Backend**: https://asus-2.onrender.com
+**Repository**: https://github.com/MKDdkm/asus
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/45694189-4cdd-4b4b-9364-a66b90cb6840
+**Original URL**: https://lovable.dev/projects/45694189-4cdd-4b4b-9364-a66b90cb6840
 
 ## How can I edit this code?
 
