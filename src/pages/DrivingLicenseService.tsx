@@ -880,10 +880,17 @@ const DrivingLicenseService = () => {
         <div className="container-width section-padding">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
-            <ArrowLeft size={20} className="mr-2" />
-            Back to Services
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80">
+              <ArrowLeft size={20} className="mr-2" />
+              Back to Services
+            </Link>
+            <Link to="/services/driving-simulator">
+              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                🎮 Try Driving Simulator
+              </Button>
+            </Link>
+          </div>
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <FileText className="text-blue-600" size={24} />
