@@ -12,6 +12,7 @@ const paymentRoutes = require('./routes/payments');
 const notificationRoutes = require('./routes/notifications');
 const adminRoutes = require('./routes/admin');
 const citizenRoutes = require('./routes/citizens');
+const digilockerRoutes = require('./routes/digilocker');
 const JSONDatabase = require('./database/json-db');
 
 const app = express();
@@ -77,6 +78,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/citizens', citizenRoutes);
+app.use('/api/digilocker', digilockerRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
