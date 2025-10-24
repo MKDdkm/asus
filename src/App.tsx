@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Demo from "./pages/Demo";
 import DrivingLicenseService from "./pages/DrivingLicenseService";
+import IncomeCertificateService from "./pages/IncomeCertificateService";
 import VoiceTest from "./pages/VoiceTest";
 import NotificationPage from "./pages/NotificationPage";
 import PaymentPage from "./pages/PaymentPage";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/services/driving-license" element={<DrivingLicenseService />} />
+              <Route path="/services/income-certificate" element={<IncomeCertificateService />} />
               <Route path="/voice-test" element={<VoiceTest />} />
               <Route path="/notifications" element={<NotificationPage />} />
               <Route path="/payments" element={<PaymentPage />} />

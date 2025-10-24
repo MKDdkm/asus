@@ -26,6 +26,10 @@ const Services = () => {
     navigate('/services/driving-license');
   };
 
+  const handleFinancialClick = () => {
+    navigate('/services/income-certificate');
+  };
+
   const serviceCategories = [
     {
       icon: FileText,
@@ -215,12 +219,13 @@ const Services = () => {
           {serviceCategories.map((category, index) => {
             const Icon = category.icon;
             const isTransport = category.title === t('services.transport.title');
+            const isFinancial = category.title === t('services.financial.title');
             return (
               <Card
                 key={category.title}
                 className={`${category.color} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer animate-slide-up group`}
                 style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={isTransport ? handleTransportClick : undefined}
+                onClick={isTransport ? handleTransportClick : isFinancial ? handleFinancialClick : undefined}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between mb-3">
@@ -262,6 +267,21 @@ const Services = () => {
                         }}
                       >
                         Try Driving License Service →
+                      </Button>
+                    </div>
+                  )}
+                  {isFinancial && (
+                    <div className="mt-4 pt-3 border-t">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full bg-white hover:bg-green-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFinancialClick();
+                        }}
+                      >
+                        Apply for Income Certificate →
                       </Button>
                     </div>
                   )}
