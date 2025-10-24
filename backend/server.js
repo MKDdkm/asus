@@ -50,7 +50,7 @@ app.use(cors({
     'http://localhost:8080', 
     'http://localhost:8081', 
     'http://localhost:3000',
-    'https://asus-kappa.vercel.app', // Add your Vercel URL here
+    'https://asus-amber.vercel.app',
     /\.vercel\.app$/ // Allow all Vercel preview deployments
   ],
   credentials: true,
