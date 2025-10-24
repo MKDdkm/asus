@@ -46,7 +46,13 @@ app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:8080', 
+    'http://localhost:8081', 
+    'http://localhost:3000',
+    'https://asus-kappa.vercel.app', // Add your Vercel URL here
+    /\.vercel\.app$/ // Allow all Vercel preview deployments
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
