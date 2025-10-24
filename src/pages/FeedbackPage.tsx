@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Star, ThumbsUp, Send, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
+import BackButton from "@/components/BackButton";
 import { useParams, useNavigate } from "react-router-dom";
 
 interface FeedbackData {
@@ -136,6 +137,11 @@ const FeedbackPage = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-6">
+            <BackButton />
+          </div>
+
           {/* Page Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">

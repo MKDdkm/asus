@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
+import BackButton from "@/components/BackButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Database, 
@@ -98,11 +99,10 @@ const DataViewer = () => {
                 🌐 Connected to: {API_BASE}
               </Badge>
             </div>
-            <Link to="/admin">
-              <Button variant="outline">
-                ← Back to Admin
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <BackButton to="/admin" label={language === 'en' ? 'Admin' : 'ಅಡ್ಮಿನ್'} variant="outline" />
+              <BackButton label={language === 'en' ? 'Go Back' : 'ಹಿಂದೆ'} variant="outline" />
+            </div>
           </div>
         </div>
 

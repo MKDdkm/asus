@@ -19,6 +19,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
+import BackButton from "@/components/BackButton";
 
 interface Application {
   id: string;
@@ -174,6 +175,11 @@ const DashboardPage = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton />
+        </div>
+
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">

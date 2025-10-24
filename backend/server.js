@@ -52,6 +52,7 @@ app.use(cors({
     'http://localhost:8081', 
     'http://localhost:3000',
     'https://asus-amber.vercel.app',
+    'https://asus-29iggr8ur-mkds-projects-3539950d.vercel.app',
     /\.vercel\.app$/ // Allow all Vercel preview deployments
   ],
   credentials: true,
