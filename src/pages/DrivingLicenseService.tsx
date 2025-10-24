@@ -336,34 +336,61 @@ const DrivingLicenseService = () => {
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = React.useState(false);
 
-    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-      setIsDrawing(true);
+    // Get coordinates from mouse or touch event
+    const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+      if (!canvas) return null;
+      
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+      
+      if ('touches' in e) {
+        // Touch event
+        if (e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          return null;
+        }
+      } else {
+        // Mouse event
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    };
+
+    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      setIsDrawing(true);
+      const coords = getCoordinates(e);
+      const canvas = canvasRef.current;
+      if (canvas && coords) {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.beginPath();
-          ctx.moveTo(x, y);
+          ctx.moveTo(coords.x, coords.y);
         }
       }
     };
 
-    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
       if (!isDrawing) return;
+      const coords = getCoordinates(e);
       const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+      if (canvas && coords) {
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 3;
           ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
           ctx.strokeStyle = '#000';
-          ctx.lineTo(x, y);
+          ctx.lineTo(coords.x, coords.y);
           ctx.stroke();
         }
       }
@@ -399,11 +426,15 @@ const DrivingLicenseService = () => {
             ref={canvasRef}
             width={400}
             height={200}
-            className="cursor-crosshair"
+            className="cursor-crosshair w-full touch-none"
+            style={{ touchAction: 'none' }}
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
           />
         </div>
         <div className="flex space-x-3 justify-center">
@@ -415,7 +446,10 @@ const DrivingLicenseService = () => {
           </Button>
         </div>
         <p className="text-xs text-gray-500 text-center">
-          Draw your signature above using your mouse or touchpad
+          {language === 'en' 
+            ? 'Draw your signature above using your mouse, touchpad or finger'
+            : 'ನಿಮ್ಮ ಸಹಿಯನ್ನು ಮೌಸ್, ಟಚ್‌ಪ್ಯಾಡ್ ಅಥವಾ ಬೆರಳಿನಿಂದ ಚಿತ್ರಿಸಿ'
+          }
         </p>
       </div>
     );
@@ -538,11 +572,13 @@ const DrivingLicenseService = () => {
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
         <title>Driving License Application - ${userData.name}</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@300;400;600;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Poppins', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; padding: 20px; }
+          body { font-family: 'Poppins', 'Noto Sans Kannada', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; padding: 20px; }
           .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
           
           .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; text-align: center; padding: 40px 30px; position: relative; }
@@ -565,7 +601,7 @@ const DrivingLicenseService = () => {
           .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; background: #f8f9ff; padding: 25px; border-radius: 0 0 15px 15px; }
           .detail-item { background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid #667eea; }
           .detail-label { font-size: 0.85rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-          .detail-value { font-size: 1rem; color: #333; font-weight: 500; }
+          .detail-value { font-size: 1rem; color: #333; font-weight: 500; font-family: 'Noto Sans Kannada', 'Poppins', Arial, sans-serif; }
           
           .declaration { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 15px; padding: 25px; margin: 30px 0; border-left: 5px solid #ff7b7b; }
           .declaration-title { font-size: 1.1rem; font-weight: 700; color: #d63031; margin-bottom: 10px; }
