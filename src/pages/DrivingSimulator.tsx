@@ -16,8 +16,6 @@ import {
   Pause,
   RotateCcw,
   Award,
-  TrendingUp,
-  AlertTriangle,
   CheckCircle2,
   XCircle,
   Car,
@@ -26,8 +24,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type GameMode = 'menu' | 'highway' | 'parking' | 'traffic' | 'results';
-type Direction = 'left' | 'right' | 'up' | 'down' | null;
+type GameMode = 'menu' | 'highway' | 'results';
 
 interface GameStats {
   score: number;
@@ -42,25 +39,31 @@ interface Obstacle {
   id: number;
   x: number;
   y: number;
-  type: 'car' | 'cone' | 'barrier' | 'coin' | 'fuel';
-  lane: number;
+  type: 'car' | 'cone' | 'coin' | 'fuel';
+}
+
+interface RoadLine {
+  y: number;
 }
 
 const DrivingSimulator = () => {
   const { language } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>();
+  const lastTimeRef = useRef<number>(Date.now());
   
   const [gameMode, setGameMode] = useState<GameMode>('menu');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   
   // Game state
-  const [carPosition, setCarPosition] = useState({ x: 150, y: 500, lane: 1 });
+  const [carLane, setCarLane] = useState(1); // 0, 1, or 2
   const [speed, setSpeed] = useState(5);
   const [fuel, setFuel] = useState(100);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
-  const [direction, setDirection] = useState<Direction>(null);
+  const [roadLines, setRoadLines] = useState<RoadLine[]>([
+    { y: 0 }, { y: 100 }, { y: 200 }, { y: 300 }, { y: 400 }, { y: 500 }
+  ]);
   
   // Game stats
   const [stats, setStats] = useState<GameStats>({
@@ -82,9 +85,9 @@ const DrivingSimulator = () => {
   const CANVAS_HEIGHT = 600;
   const CAR_WIDTH = 50;
   const CAR_HEIGHT = 80;
-  const LANES = [75, 175, 275]; // 3 lanes
+  const LANES = [75, 175, 275];
 
-  // Load high scores from localStorage
+  // Load high scores
   useEffect(() => {
     const saved = localStorage.getItem('drivingSimHighScores');
     if (saved) {
@@ -92,7 +95,6 @@ const DrivingSimulator = () => {
     }
   }, []);
 
-  // Save high scores
   const saveHighScore = (mode: string, score: number) => {
     const newScores = { ...highScores, [mode]: Math.max(highScores[mode as keyof typeof highScores], score) };
     setHighScores(newScores);
@@ -108,21 +110,25 @@ const DrivingSimulator = () => {
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          setDirection('left');
+          e.preventDefault();
+          setCarLane(prev => Math.max(0, prev - 1));
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          setDirection('right');
+          e.preventDefault();
+          setCarLane(prev => Math.min(2, prev + 1));
           break;
         case 'ArrowUp':
         case 'w':
         case 'W':
+          e.preventDefault();
           setSpeed(prev => Math.min(prev + 1, 10));
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
+          e.preventDefault();
           setSpeed(prev => Math.max(prev - 1, 2));
           break;
         case ' ':
@@ -132,28 +138,9 @@ const DrivingSimulator = () => {
       }
     };
 
-    const handleKeyUp = () => {
-      setDirection(null);
-    };
-
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, isPaused]);
-
-  // Touch controls for mobile
-  const handleLaneChange = (targetLane: number) => {
-    if (!isPlaying || isPaused) return;
-    setCarPosition(prev => ({
-      ...prev,
-      lane: targetLane,
-      x: LANES[targetLane]
-    }));
-  };
 
   // Game loop
   useEffect(() => {
@@ -165,66 +152,64 @@ const DrivingSimulator = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let lastTime = Date.now();
     let obstacleSpawnTimer = 0;
+    let lastSpawnTime = Date.now();
 
     const gameLoop = () => {
       const now = Date.now();
-      const deltaTime = (now - lastTime) / 1000;
-      lastTime = now;
+      const deltaTime = (now - lastTimeRef.current) / 1000;
+      lastTimeRef.current = now;
 
-      // Update car position based on direction
-      if (direction === 'left' && carPosition.lane > 0) {
-        setCarPosition(prev => ({
-          ...prev,
-          lane: prev.lane - 1,
-          x: LANES[prev.lane - 1]
+      // Move road lines
+      setRoadLines(prev => {
+        const updated = prev.map(line => ({
+          y: line.y + speed * 60 * deltaTime
         }));
-        setDirection(null);
-      } else if (direction === 'right' && carPosition.lane < 2) {
-        setCarPosition(prev => ({
-          ...prev,
-          lane: prev.lane + 1,
-          x: LANES[prev.lane + 1]
-        }));
-        setDirection(null);
-      }
+        
+        // Reset lines that go off screen
+        return updated.map(line => 
+          line.y > CANVAS_HEIGHT ? { y: line.y - CANVAS_HEIGHT } : line
+        );
+      });
 
       // Spawn obstacles
-      obstacleSpawnTimer += deltaTime;
-      if (obstacleSpawnTimer > 1.5 / speed) {
+      if (now - lastSpawnTime > 1500 / speed) {
         const lane = Math.floor(Math.random() * 3);
-        const type = Math.random() > 0.7 ? 'coin' : Math.random() > 0.8 ? 'fuel' : Math.random() > 0.5 ? 'car' : 'cone';
+        const type = Math.random() > 0.7 ? 'coin' : Math.random() > 0.85 ? 'fuel' : Math.random() > 0.5 ? 'car' : 'cone';
         
         setObstacles(prev => [...prev, {
-          id: Date.now(),
+          id: now,
           x: LANES[lane],
           y: -50,
-          type,
-          lane
+          type
         }]);
-        obstacleSpawnTimer = 0;
+        lastSpawnTime = now;
       }
 
-      // Update obstacles
+      // Move obstacles
       setObstacles(prev => {
-        const updated = prev.map(obs => ({
-          ...obs,
-          y: obs.y + speed * 60 * deltaTime
-        })).filter(obs => obs.y < CANVAS_HEIGHT + 100);
-
-        // Collision detection
-        updated.forEach(obs => {
+        const carX = LANES[carLane];
+        const carY = 450;
+        
+        const updated = prev.map(obs => {
+          const newY = obs.y + speed * 60 * deltaTime;
+          
+          // Collision detection
           if (
-            Math.abs(obs.x - carPosition.x) < 40 &&
-            Math.abs(obs.y - carPosition.y) < 60
+            Math.abs(obs.x - carX) < 40 &&
+            Math.abs(newY - carY) < 60 &&
+            newY > 0
           ) {
             if (obs.type === 'coin') {
-              setStats(s => ({ ...s, score: s.score + 10, coinsCollected: s.coinsCollected + 1 }));
-              obs.y = CANVAS_HEIGHT + 200; // Remove coin
+              setStats(s => ({ 
+                ...s, 
+                score: s.score + 10, 
+                coinsCollected: s.coinsCollected + 1 
+              }));
+              return { ...obs, y: CANVAS_HEIGHT + 200 };
             } else if (obs.type === 'fuel') {
               setFuel(f => Math.min(f + 20, 100));
-              obs.y = CANVAS_HEIGHT + 200; // Remove fuel
+              return { ...obs, y: CANVAS_HEIGHT + 200 };
             } else {
               setStats(s => ({ 
                 ...s, 
@@ -232,10 +217,12 @@ const DrivingSimulator = () => {
                 obstaclesHit: s.obstaclesHit + 1,
                 accuracy: Math.max(0, s.accuracy - 5)
               }));
-              obs.y = CANVAS_HEIGHT + 200; // Remove obstacle
+              return { ...obs, y: CANVAS_HEIGHT + 200 };
             }
           }
-        });
+          
+          return { ...obs, y: newY };
+        }).filter(obs => obs.y < CANVAS_HEIGHT + 100);
 
         return updated;
       });
@@ -245,12 +232,12 @@ const DrivingSimulator = () => {
         ...prev,
         distance: prev.distance + speed * deltaTime,
         timeElapsed: prev.timeElapsed + deltaTime,
-        score: prev.score + Math.floor(speed * deltaTime)
+        score: prev.score + Math.floor(speed * deltaTime * 0.5)
       }));
 
       // Decrease fuel
       setFuel(prev => {
-        const newFuel = prev - speed * deltaTime * 0.1;
+        const newFuel = prev - speed * deltaTime * 0.15;
         if (newFuel <= 0) {
           endGame();
           return 0;
@@ -271,7 +258,7 @@ const DrivingSimulator = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, isPaused, carPosition, obstacles, speed, direction, fuel]);
+  }, [isPlaying, isPaused, carLane, obstacles, roadLines, speed, fuel]);
 
   const drawGame = (ctx: CanvasRenderingContext2D) => {
     // Clear canvas
@@ -282,32 +269,31 @@ const DrivingSimulator = () => {
     ctx.fillStyle = '#2a2a2a';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Draw lane lines
+    // Draw animated lane lines
     ctx.strokeStyle = '#ffff00';
     ctx.lineWidth = 3;
     ctx.setLineDash([20, 20]);
     
-    for (let i = 1; i < 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(LANES[i] - 25, 0);
-      ctx.lineTo(LANES[i] - 25, CANVAS_HEIGHT);
-      ctx.stroke();
-    }
+    roadLines.forEach(line => {
+      for (let i = 1; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(LANES[i] - 25, line.y);
+        ctx.lineTo(LANES[i] - 25, line.y + 60);
+        ctx.stroke();
+      }
+    });
     ctx.setLineDash([]);
 
     // Draw obstacles
     obstacles.forEach(obs => {
       if (obs.type === 'car') {
-        // Draw other car (red)
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(obs.x - 20, obs.y - 30, 40, 60);
         ctx.fillStyle = '#dc2626';
         ctx.fillRect(obs.x - 15, obs.y - 20, 30, 20);
-        // Windows
         ctx.fillStyle = '#93c5fd';
         ctx.fillRect(obs.x - 12, obs.y - 15, 24, 12);
       } else if (obs.type === 'cone') {
-        // Draw traffic cone (orange)
         ctx.fillStyle = '#f97316';
         ctx.beginPath();
         ctx.moveTo(obs.x, obs.y - 20);
@@ -315,11 +301,9 @@ const DrivingSimulator = () => {
         ctx.lineTo(obs.x + 10, obs.y + 10);
         ctx.closePath();
         ctx.fill();
-        // White stripe
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(obs.x - 8, obs.y - 5, 16, 3);
       } else if (obs.type === 'coin') {
-        // Draw coin (gold)
         ctx.fillStyle = '#fbbf24';
         ctx.beginPath();
         ctx.arc(obs.x, obs.y, 12, 0, Math.PI * 2);
@@ -329,7 +313,6 @@ const DrivingSimulator = () => {
         ctx.arc(obs.x, obs.y, 8, 0, Math.PI * 2);
         ctx.fill();
       } else if (obs.type === 'fuel') {
-        // Draw fuel can (green)
         ctx.fillStyle = '#10b981';
         ctx.fillRect(obs.x - 12, obs.y - 15, 24, 30);
         ctx.fillStyle = '#059669';
@@ -337,23 +320,16 @@ const DrivingSimulator = () => {
       }
     });
 
-    // Draw player car (blue)
-    const carX = carPosition.x;
-    const carY = carPosition.y;
+    // Draw player car (fixed position)
+    const carX = LANES[carLane];
+    const carY = 450;
     
-    // Car body
     ctx.fillStyle = '#3b82f6';
     ctx.fillRect(carX - 25, carY - 40, 50, 80);
-    
-    // Car top
     ctx.fillStyle = '#2563eb';
     ctx.fillRect(carX - 20, carY - 30, 40, 30);
-    
-    // Windows
     ctx.fillStyle = '#93c5fd';
     ctx.fillRect(carX - 15, carY - 25, 30, 20);
-    
-    // Wheels
     ctx.fillStyle = '#000000';
     ctx.fillRect(carX - 28, carY - 35, 8, 15);
     ctx.fillRect(carX + 20, carY - 35, 8, 15);
@@ -365,10 +341,13 @@ const DrivingSimulator = () => {
     setGameMode(mode);
     setIsPlaying(true);
     setIsPaused(false);
-    setCarPosition({ x: LANES[1], y: 500, lane: 1 });
+    setCarLane(1);
     setSpeed(5);
     setFuel(100);
     setObstacles([]);
+    setRoadLines([
+      { y: 0 }, { y: 100 }, { y: 200 }, { y: 300 }, { y: 400 }, { y: 500 }
+    ]);
     setStats({
       score: 0,
       distance: 0,
@@ -377,6 +356,7 @@ const DrivingSimulator = () => {
       timeElapsed: 0,
       accuracy: 100
     });
+    lastTimeRef.current = Date.now();
   };
 
   const endGame = () => {
@@ -398,7 +378,6 @@ const DrivingSimulator = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
         <Link to="/services/driving-license">
           <Button variant="ghost" className="mb-6 text-white hover:bg-white/10">
             <ArrowLeft className="mr-2" size={20} />
@@ -430,7 +409,7 @@ const DrivingSimulator = () => {
                 <CardContent className="p-6 text-center">
                   <Trophy className="text-yellow-400 mx-auto mb-2" size={32} />
                   <p className="text-white/70 text-sm">Highway High Score</p>
-                  <p className="text-3xl font-bold text-yellow-400">{highScores.highway}</p>
+                  <p className="text-3xl font-bold text-yellow-400">{Math.floor(highScores.highway)}</p>
                 </CardContent>
               </Card>
               <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/50">
@@ -449,120 +428,61 @@ const DrivingSimulator = () => {
               </Card>
             </div>
 
-            {/* Game Modes */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-gradient-to-br from-blue-600/30 to-purple-600/30 border-blue-500/50 hover:scale-105 transition-transform cursor-pointer">
+            {/* Game Mode Card */}
+            <div className="max-w-2xl mx-auto">
+              <Card className="bg-gradient-to-br from-blue-600/30 to-purple-600/30 border-blue-500/50 hover:scale-105 transition-transform">
                 <CardHeader>
-                  <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Car size={32} className="text-white" />
+                  <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Car size={40} className="text-white" />
                   </div>
-                  <CardTitle className="text-white text-center text-2xl">
+                  <CardTitle className="text-white text-center text-3xl">
                     🛣️ Highway Drive
                   </CardTitle>
-                  <CardDescription className="text-gray-300 text-center">
+                  <CardDescription className="text-gray-300 text-center text-lg">
                     {language === 'en' 
-                      ? 'Dodge traffic and collect coins on the highway'
-                      : 'ಹೆದ್ದಾರಿಯಲ್ಲಿ ಟ್ರಾಫಿಕ್ ತಪ್ಪಿಸಿ ಮತ್ತು ನಾಣ್ಯಗಳನ್ನು ಸಂಗ್ರಹಿಸಿ'
+                      ? 'Dodge traffic and collect coins on the highway!'
+                      : 'ಹೆದ್ದಾರಿಯಲ್ಲಿ ಟ್ರಾಫಿಕ್ ತಪ್ಪಿಸಿ ಮತ್ತು ನಾಣ್ಯಗಳನ್ನು ಸಂಗ್ರಹಿಸಿ!'
                     }
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <Button 
                     onClick={() => startGame('highway')}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-xl py-6"
                     size="lg"
                   >
-                    <Play className="mr-2" size={20} />
+                    <Play className="mr-2" size={24} />
                     Play Now
                   </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-500/50 hover:scale-105 transition-transform">
-                <CardHeader>
-                  <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-                    <Target size={32} className="text-white" />
-                  </div>
-                  <CardTitle className="text-white text-center text-2xl">
-                    🅿️ Parking Challenge
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-center">
-                    {language === 'en' 
-                      ? 'Master parallel and perpendicular parking'
-                      : 'ಸಮಾನಾಂತರ ಮತ್ತು ಲಂಬ ಪಾರ್ಕಿಂಗ್ ಕರಗತ ಮಾಡಿಕೊಳ್ಳಿ'
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    disabled
-                    className="w-full bg-orange-600/50"
-                    size="lg"
-                  >
-                    Coming Soon
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-600/30 to-emerald-600/30 border-green-500/50 hover:scale-105 transition-transform">
-                <CardHeader>
-                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-                    <AlertTriangle size={32} className="text-white" />
-                  </div>
-                  <CardTitle className="text-white text-center text-2xl">
-                    🚦 Traffic Scenarios
-                  </CardTitle>
-                  <CardDescription className="text-gray-300 text-center">
-                    {language === 'en' 
-                      ? 'Navigate signals, turns, and intersections'
-                      : 'ಸಿಗ್ನಲ್ಗಳು, ತಿರುವುಗಳು ಮತ್ತು ಛೇದಿಸುವಿಕೆಗಳನ್ನು ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ'
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    disabled
-                    className="w-full bg-green-600/50"
-                    size="lg"
-                  >
-                    Coming Soon
-                  </Button>
+                  
+                  <Card className="bg-white/5 border-white/10">
+                    <CardContent className="p-6">
+                      <h4 className="font-bold mb-3 text-white text-lg">🎮 Controls:</h4>
+                      <div className="grid md:grid-cols-2 gap-4 text-white text-sm">
+                        <div>
+                          <p className="text-blue-400 font-semibold mb-2">💻 Desktop:</p>
+                          <ul className="space-y-1 text-gray-300">
+                            <li>⬅️ <kbd className="px-2 py-1 bg-white/10 rounded">←</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">A</kbd> = Left</li>
+                            <li>➡️ <kbd className="px-2 py-1 bg-white/10 rounded">→</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">D</kbd> = Right</li>
+                            <li>⬆️ <kbd className="px-2 py-1 bg-white/10 rounded">↑</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">W</kbd> = Speed +</li>
+                            <li>⬇️ <kbd className="px-2 py-1 bg-white/10 rounded">↓</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">S</kbd> = Speed -</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-green-400 font-semibold mb-2">📱 Mobile:</p>
+                          <ul className="space-y-1 text-gray-300">
+                            <li>👆 Tap lane buttons</li>
+                            <li>🪙 Collect coins = +10</li>
+                            <li>⛽ Grab fuel = refill</li>
+                            <li>🚗 Avoid cars = -20</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </CardContent>
               </Card>
             </div>
-
-            {/* Instructions */}
-            <Card className="mt-8 bg-white/5 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white text-center">
-                  🎮 {language === 'en' ? 'How to Play' : 'ಹೇಗೆ ಆಡುವುದು'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6 text-white">
-                  <div>
-                    <h4 className="font-bold mb-2 text-blue-400">💻 Desktop Controls:</h4>
-                    <ul className="space-y-2 text-gray-300">
-                      <li>⬅️ <kbd className="px-2 py-1 bg-white/10 rounded">←</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">A</kbd> - Move Left</li>
-                      <li>➡️ <kbd className="px-2 py-1 bg-white/10 rounded">→</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">D</kbd> - Move Right</li>
-                      <li>⬆️ <kbd className="px-2 py-1 bg-white/10 rounded">↑</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">W</kbd> - Speed Up</li>
-                      <li>⬇️ <kbd className="px-2 py-1 bg-white/10 rounded">↓</kbd> or <kbd className="px-2 py-1 bg-white/10 rounded">S</kbd> - Slow Down</li>
-                      <li>⏸️ <kbd className="px-2 py-1 bg-white/10 rounded">Space</kbd> - Pause</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-2 text-green-400">📱 Mobile Controls:</h4>
-                    <ul className="space-y-2 text-gray-300">
-                      <li>👆 Tap lane buttons to change lanes</li>
-                      <li>🎯 Collect gold coins (+10 points)</li>
-                      <li>⛽ Grab fuel cans to refill</li>
-                      <li>🚗 Avoid red cars (-20 points)</li>
-                      <li>🚧 Dodge traffic cones</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
@@ -584,7 +504,7 @@ const DrivingSimulator = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border-blue-500/50">
+                <Card className="bg-gradient-to-br from-red-600/30 to-orange-600/30 border-red-500/50">
                   <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
                       <Fuel size={24} className="text-red-400" />
@@ -658,7 +578,6 @@ const DrivingSimulator = () => {
                       width={CANVAS_WIDTH}
                       height={CANVAS_HEIGHT}
                       className="w-full max-w-md mx-auto block"
-                      style={{ imageRendering: 'pixelated' }}
                     />
                     
                     {isPaused && (
@@ -680,20 +599,20 @@ const DrivingSimulator = () => {
                     {/* Mobile Lane Controls */}
                     <div className="mt-4 grid grid-cols-3 gap-2 p-4 lg:hidden">
                       <Button
-                        onClick={() => handleLaneChange(0)}
-                        className={`${carPosition.lane === 0 ? 'bg-blue-600' : 'bg-gray-600'}`}
+                        onClick={() => setCarLane(0)}
+                        className={`${carLane === 0 ? 'bg-blue-600' : 'bg-gray-600'}`}
                       >
                         ⬅️ Left
                       </Button>
                       <Button
-                        onClick={() => handleLaneChange(1)}
-                        className={`${carPosition.lane === 1 ? 'bg-blue-600' : 'bg-gray-600'}`}
+                        onClick={() => setCarLane(1)}
+                        className={`${carLane === 1 ? 'bg-blue-600' : 'bg-gray-600'}`}
                       >
                         ⬆️ Center
                       </Button>
                       <Button
-                        onClick={() => handleLaneChange(2)}
-                        className={`${carPosition.lane === 2 ? 'bg-blue-600' : 'bg-gray-600'}`}
+                        onClick={() => setCarLane(2)}
+                        className={`${carLane === 2 ? 'bg-blue-600' : 'bg-gray-600'}`}
                       >
                         ➡️ Right
                       </Button>
@@ -765,7 +684,7 @@ const DrivingSimulator = () => {
                       <Award className="text-purple-400" size={20} />
                       High Score
                     </span>
-                    <Badge className="bg-purple-500 text-white">{highScores.highway}</Badge>
+                    <Badge className="bg-purple-500 text-white">{Math.floor(highScores.highway)}</Badge>
                   </div>
                 </div>
 
