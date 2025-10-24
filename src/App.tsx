@@ -13,6 +13,8 @@ import NotificationPage from "./pages/NotificationPage";
 import PaymentPage from "./pages/PaymentPage";
 import AdminPage from "./pages/AdminPage";
 import CitizensPage from "./pages/CitizensPage";
+import DashboardPage from "./pages/DashboardPage";
+import FeedbackPage from "./pages/FeedbackPage";
 import NotFound from "./pages/NotFound";
 import AISahayak from "./components/AISahayak";
 
@@ -35,6 +37,8 @@ const App = () => (
               <Route path="/payments" element={<PaymentPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/citizens" element={<CitizensPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/feedback/:applicationId" element={<FeedbackPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

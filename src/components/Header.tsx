@@ -119,6 +119,12 @@ const Header = () => {
               </Button>
             </Link>
             
+            <Link to="/dashboard">
+              <Button variant="outline" size="sm" className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100">
+                📊 Dashboard
+              </Button>
+            </Link>
+            
             <Link to="/demo">
               <Button variant="demo" size="sm">
                 {t('header.tryDemo')}
@@ -199,6 +205,12 @@ const Header = () => {
               <Link to="/citizens" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="mt-2 w-full bg-blue-50 text-blue-700 border-blue-200">
                   👥 Citizens
+                </Button>
+              </Link>
+              
+              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="outline" size="sm" className="mt-2 w-full bg-purple-50 text-purple-700 border-purple-200">
+                  📊 Dashboard
                 </Button>
               </Link>
               
