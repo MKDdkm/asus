@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import VoiceField from "@/components/VoiceField";
 import VoiceInput from "@/components/VoiceInput";
 import PaymentSystem from "@/components/PaymentSystem";
+import DigiLockerIntegration from "@/components/DigiLockerIntegration";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { 
@@ -1349,6 +1350,17 @@ const DrivingLicenseService = () => {
               <p className="text-gray-600">
                 {language === 'en' ? 'Your details have been auto-filled. Now upload your photo.' : 'ನಿಮ್ಮ ವಿವರಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಭರ್ತಿಯಾಗಿವೆ. ಈಗ ನಿಮ್ಮ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.'}
               </p>
+            </div>
+
+            {/* DigiLocker Integration */}
+            <div className="mb-6">
+              <DigiLockerIntegration 
+                allowedDocTypes={['AADHAAR', 'DRVLC', 'PAN']}
+                onDocumentFetched={(doc) => {
+                  console.log('Document fetched from DigiLocker:', doc);
+                  alert(`✅ ${doc.name} fetched successfully! You can now use it in your application.`);
+                }}
+              />
             </div>
 
             <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
