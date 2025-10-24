@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Send, User, Bot, Camera, CheckCircle, Download, Home } from "lucide-react";
 import { Link } from "react-router-dom";
+import DigiLockerIntegration from "@/components/DigiLockerIntegration";
 
 interface Message {
   id: string;
@@ -216,14 +217,39 @@ const Demo = () => {
   );
 
   const renderScanStep = () => (
-    <div className="max-w-2xl mx-auto text-center">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* DigiLocker Option */}
+      <DigiLockerIntegration 
+        allowedDocTypes={['AADHAAR', 'PAN', 'DRVLC']}
+        onDocumentFetched={(doc) => {
+          console.log('Document fetched from DigiLocker:', doc);
+          // Simulate auto-fill with DigiLocker data
+          setFormData({
+            ...formData,
+            aadhaar: "123456789012",
+            address: "Auto-filled from DigiLocker"
+          });
+          setTimeout(() => {
+            handleScanComplete();
+          }, 1500);
+        }}
+      />
+      
+      {/* OR Divider */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 h-px bg-gray-300"></div>
+        <span className="text-sm text-gray-500 font-medium">OR</span>
+        <div className="flex-1 h-px bg-gray-300"></div>
+      </div>
+      
+      {/* Manual Scan Option */}
       <Card className="p-8">
-        <div className="mb-6">
+        <div className="mb-6 text-center">
           <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <Camera size={32} className="text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Scanning Aadhaar Card</h2>
-          <p className="text-muted-foreground">Please hold your Aadhaar card steady in front of the camera</p>
+          <h2 className="text-2xl font-bold mb-2">Scan Aadhaar Card Manually</h2>
+          <p className="text-muted-foreground">Hold your Aadhaar card steady in front of the camera</p>
         </div>
 
         {/* Mock Camera View */}
