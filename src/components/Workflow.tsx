@@ -102,16 +102,22 @@ const Workflow = () => {
 
         {/* Call to Action */}
         <div className="text-center mt-16 animate-fade-in">
-          <div className="inline-flex items-center space-x-4 p-6 bg-gradient-primary rounded-2xl shadow-glow">
-            <div className="text-white">
-              <h3 className="text-xl font-bold mb-1">Ready to get started?</h3>
-              <p className="text-white/90">Try our demo and see how easy it is</p>
+          <div className="mx-auto max-w-3xl flex flex-col md:flex-row items-center gap-4 p-6 bg-gradient-to-r from-orange-600 to-red-500 rounded-2xl shadow-glow">
+            <div className="flex-1 text-left md:text-left text-white">
+              <h3 className="text-2xl md:text-3xl font-extrabold mb-1">{t['workflow.ctaTitle'] ?? 'Ready to get started?'}</h3>
+              <p className="text-white/90 max-w-xl">{t['workflow.ctaDesc'] ?? 'Try our demo and see how easy it is'}</p>
             </div>
-            <Link to="/demo">
-              <button className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:shadow-elegant transform hover:scale-105 transition-all duration-300">
-                Try Demo Now
-              </button>
-            </Link>
+
+            <div className="flex-shrink-0">
+              <Link to="/demo" aria-label={t['hero.tryDemo'] ?? 'Try Demo'}>
+                <button
+                  className="inline-flex items-center space-x-3 bg-white text-orange-600 px-5 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-orange-200"
+                >
+                  <span>{t['hero.tryDemo'] ?? 'Try Demo'}</span>
+                  <ArrowRight size={18} className="text-orange-600" />
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
