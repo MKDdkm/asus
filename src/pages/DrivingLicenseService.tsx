@@ -791,7 +791,7 @@ const DrivingLicenseService = () => {
   const submitApplicationToBackend = async (paymentInfo: any) => {
     try {
       // Submit application
-      const applicationResponse = await fetch('http://localhost:3001/api/applications', {
+      const applicationResponse = await fetch(`${API_BASE_URL}/applications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -809,7 +809,7 @@ const DrivingLicenseService = () => {
         console.log('✅ Application submitted to backend:', applicationResult);
         
         // Submit payment
-        const paymentResponse = await fetch('http://localhost:3001/api/payments', {
+        const paymentResponse = await fetch(`${API_BASE_URL}/payments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
