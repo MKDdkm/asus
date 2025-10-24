@@ -34,7 +34,7 @@ const FeedbackPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [hoveredRating, setHoveredRating] = useState(0);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   const handleSubmit = async () => {
     try {

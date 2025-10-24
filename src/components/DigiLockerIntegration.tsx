@@ -31,7 +31,7 @@ const DigiLockerIntegration = ({
   const [error, setError] = useState<string>("");
   const [accessToken, setAccessToken] = useState<string>("");
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   // DigiLocker document type mapping
   const docTypeNames: Record<string, string> = {

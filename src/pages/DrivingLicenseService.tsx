@@ -96,7 +96,7 @@ const DrivingLicenseService = () => {
   // Editable form fields
   const [editableData, setEditableData] = useState<UserData | null>(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   // RTO Data for Karnataka with GPS coordinates
   const rtoLocations = [

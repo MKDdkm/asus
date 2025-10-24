@@ -40,7 +40,7 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   useEffect(() => {
     fetchApplications();

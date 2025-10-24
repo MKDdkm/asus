@@ -69,7 +69,7 @@ const IncomeCertificateService = () => {
   const [uploadedDocs, setUploadedDocs] = useState<{[key: string]: string}>({});
   const [applicationId, setApplicationId] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   // Step 1: Verify Aadhaar
   const handleAadhaarVerification = () => {

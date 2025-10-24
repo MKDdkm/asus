@@ -67,7 +67,7 @@ const AdminPanel: React.FC = () => {
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
 
   // Backend API base URL
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
 
   useEffect(() => {
     fetchDashboardData();
