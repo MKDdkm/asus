@@ -13,13 +13,13 @@ const notificationRoutes = require('./routes/notifications');
 const adminRoutes = require('./routes/admin');
 const citizenRoutes = require('./routes/citizens');
 const digilockerRoutes = require('./routes/digilocker');
-const HybridDatabase = require('./database/hybrid-db');
+const JSONDatabase = require('./database/json-db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize Hybrid database (supports both JSON and Firebase)
-const db = new HybridDatabase();
+// Initialize JSON database
+const db = new JSONDatabase();
 
 // Set database on app for routes to access
 app.set('db', db);
