@@ -81,15 +81,38 @@ router.post('/', async (req, res) => {
     // Generate citizen ID
     const citizen_id = 'CIT' + Date.now().toString().slice(-6);
 
-    const result = await db.run(`
-      INSERT INTO citizens (
-        citizen_id, name, name_kannada, email, phone, address, 
-        date_of_birth, gender, occupation, district, pincode
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [citizen_id, name, name_kannada, email, phone, address, date_of_birth, gender, occupation, district, pincode]);
+    let newCitizen;
+    
+    if (db.addCitizen) {
+      // Hybrid database (Firebase/JSON)
+      const citizenData = {
+        citizen_id,
+        name,
+        name_kannada,
+        email,
+        phone,
+        address,
+        date_of_birth,
+        gender,
+        occupation,
+        district,
+        state: 'Karnataka',
+        pincode,
+        status: 'active'
+      };
+      
+      newCitizen = await db.addCitizen(citizenData);
+    } else {
+      // SQL database fallback
+      const result = await db.run(`
+        INSERT INTO citizens (
+          citizen_id, name, name_kannada, email, phone, address, 
+          date_of_birth, gender, occupation, district, pincode
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [citizen_id, name, name_kannada, email, phone, address, date_of_birth, gender, occupation, district, pincode]);
 
-    // Get the created citizen
-    const newCitizen = await db.get('SELECT * FROM citizens WHERE id = ?', [result.lastID]);
+      newCitizen = await db.get('SELECT * FROM citizens WHERE id = ?', [result.lastID]);
+    }
 
     console.log(`✅ New citizen added: ${name} (ID: ${citizen_id})`);
 
@@ -135,26 +158,53 @@ router.put('/:id', async (req, res) => {
       status
     } = req.body;
 
-    // Check if citizen exists
-    const existingCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
-    
-    if (!existingCitizen) {
-      return res.status(404).json({
-        success: false,
-        message: 'Citizen not found'
-      });
+    let updatedCitizen;
+
+    if (db.updateCitizen) {
+      // Hybrid database (Firebase/JSON)
+      const updates = {
+        name,
+        name_kannada,
+        email,
+        phone,
+        address,
+        date_of_birth,
+        gender,
+        occupation,
+        district,
+        pincode,
+        status: status || 'active'
+      };
+      
+      updatedCitizen = await db.updateCitizen(id, updates);
+      
+      if (!updatedCitizen) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+    } else {
+      // SQL database fallback
+      const existingCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
+      
+      if (!existingCitizen) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+
+      await db.run(`
+        UPDATE citizens SET 
+          name = ?, name_kannada = ?, email = ?, phone = ?, address = ?,
+          date_of_birth = ?, gender = ?, occupation = ?, district = ?, pincode = ?,
+          status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE citizen_id = ? OR id = ?
+      `, [name, name_kannada, email, phone, address, date_of_birth, gender, occupation, district, pincode, status || existingCitizen.status, id, id]);
+
+      updatedCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
     }
-
-    await db.run(`
-      UPDATE citizens SET 
-        name = ?, name_kannada = ?, email = ?, phone = ?, address = ?,
-        date_of_birth = ?, gender = ?, occupation = ?, district = ?, pincode = ?,
-        status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE citizen_id = ? OR id = ?
-    `, [name, name_kannada, email, phone, address, date_of_birth, gender, occupation, district, pincode, status || existingCitizen.status, id, id]);
-
-    // Get updated citizen
-    const updatedCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
 
     console.log(`✅ Citizen updated: ${name} (ID: ${id})`);
 
@@ -186,24 +236,37 @@ router.delete('/:id', async (req, res) => {
     const db = req.app.get('db');
     const { id } = req.params;
 
-    // Check if citizen exists
-    const existingCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
-    
-    if (!existingCitizen) {
-      return res.status(404).json({
-        success: false,
-        message: 'Citizen not found'
-      });
+    let deleted;
+
+    if (db.deleteCitizen) {
+      // Hybrid database (Firebase/JSON)
+      deleted = await db.deleteCitizen(id);
+      
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+    } else {
+      // SQL database fallback
+      const existingCitizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
+      
+      if (!existingCitizen) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+
+      await db.run('DELETE FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
     }
 
-    await db.run('DELETE FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
-
-    console.log(`🗑️ Citizen deleted: ${existingCitizen.name} (ID: ${id})`);
+    console.log(`🗑️ Citizen deleted (ID: ${id})`);
 
     res.json({
       success: true,
-      message: 'Citizen deleted successfully',
-      data: existingCitizen
+      message: 'Citizen deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting citizen:', error);
