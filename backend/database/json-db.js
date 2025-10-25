@@ -171,6 +171,118 @@ class JSONDatabase {
     console.log('📥 JSON Database connection closed');
     return Promise.resolve();
   }
+
+  // Additional methods for hybrid compatibility
+  getCitizens() {
+    const data = this.loadData();
+    return data.citizens || [];
+  }
+
+  getCitizenById(id) {
+    const data = this.loadData();
+    return data.citizens.find(c => c.id === id || c.citizen_id === id) || null;
+  }
+
+  addCitizen(citizenData) {
+    const data = this.loadData();
+    const newCitizen = {
+      ...citizenData,
+      id: `citizen_${data.nextId}`,
+      created_at: new Date().toISOString()
+    };
+    data.citizens.push(newCitizen);
+    data.nextId++;
+    this.saveData(data);
+    return newCitizen;
+  }
+
+  updateCitizen(id, updates) {
+    const data = this.loadData();
+    const index = data.citizens.findIndex(c => c.id === id || c.citizen_id === id);
+    if (index !== -1) {
+      data.citizens[index] = { ...data.citizens[index], ...updates, updated_at: new Date().toISOString() };
+      this.saveData(data);
+      return data.citizens[index];
+    }
+    return null;
+  }
+
+  deleteCitizen(id) {
+    const data = this.loadData();
+    const initialLength = data.citizens.length;
+    data.citizens = data.citizens.filter(c => c.id !== id && c.citizen_id !== id);
+    if (data.citizens.length < initialLength) {
+      this.saveData(data);
+      return true;
+    }
+    return false;
+  }
+
+  getApplications() {
+    const data = this.loadData();
+    return data.applications || [];
+  }
+
+  addApplication(appData) {
+    const data = this.loadData();
+    if (!data.applications) data.applications = [];
+    const newApp = {
+      ...appData,
+      id: `app_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    data.applications.push(newApp);
+    this.saveData(data);
+    return newApp;
+  }
+
+  updateApplication(id, updates) {
+    const data = this.loadData();
+    if (!data.applications) return null;
+    const index = data.applications.findIndex(a => a.id === id);
+    if (index !== -1) {
+      data.applications[index] = { ...data.applications[index], ...updates };
+      this.saveData(data);
+      return data.applications[index];
+    }
+    return null;
+  }
+
+  getPayments() {
+    const data = this.loadData();
+    return data.payments || [];
+  }
+
+  addPayment(paymentData) {
+    const data = this.loadData();
+    if (!data.payments) data.payments = [];
+    const newPayment = {
+      ...paymentData,
+      id: `pay_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    data.payments.push(newPayment);
+    this.saveData(data);
+    return newPayment;
+  }
+
+  getNotifications() {
+    const data = this.loadData();
+    return data.notifications || [];
+  }
+
+  addNotification(notifData) {
+    const data = this.loadData();
+    if (!data.notifications) data.notifications = [];
+    const newNotif = {
+      ...notifData,
+      id: `notif_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    data.notifications.push(newNotif);
+    this.saveData(data);
+    return newNotif;
+  }
 }
 
 module.exports = JSONDatabase;

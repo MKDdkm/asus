@@ -5,7 +5,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const db = req.app.get('db');
-    const citizens = await db.all('SELECT * FROM citizens ORDER BY created_at DESC');
+    const citizens = db.getCitizens ? db.getCitizens() : await db.all('SELECT * FROM citizens ORDER BY created_at DESC');
     res.json({
       success: true,
       data: citizens
