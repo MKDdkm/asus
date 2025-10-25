@@ -5,7 +5,21 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const db = req.app.get('db');
-    const citizens = db.getCitizens ? db.getCitizens() : await db.all('SELECT * FROM citizens ORDER BY created_at DESC');
+    let citizens;
+    
+    if (db.getCitizens) {
+      // Hybrid database - handle async
+      citizens = await db.getCitizens();
+    } else {
+      // SQL database fallback
+      citizens = await db.all('SELECT * FROM citizens ORDER BY created_at DESC');
+    }
+    
+    // Ensure citizens is always an array
+    if (!Array.isArray(citizens)) {
+      citizens = [];
+    }
+    
     res.json({
       success: true,
       data: citizens
