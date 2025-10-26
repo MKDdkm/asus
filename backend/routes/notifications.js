@@ -1,8 +1,19 @@
 const express = require('express');
 const Database = require('../database/db');
+const webpush = require('web-push');
 
 const router = express.Router();
 const db = new Database();
+
+// Store push subscriptions in memory (in production, use a database)
+const subscriptions = new Map();
+
+// Configure web-push with VAPID details
+webpush.setVapidDetails(
+  process.env.VAPID_SUBJECT || 'mailto:admin@enagarika.gov.in',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
 
 // GET - Fetch all notifications
 router.get('/', async (req, res) => {
@@ -384,6 +395,218 @@ router.get('/stats/overview', async (req, res) => {
       message: error.message
     });
   }
+});
+
+// ==================== PUSH NOTIFICATION ENDPOINTS ====================
+
+// GET - Get VAPID public key for push subscription
+router.get('/push/vapid-public-key', (req, res) => {
+  res.json({ 
+    success: true,
+    publicKey: process.env.VAPID_PUBLIC_KEY 
+  });
+});
+
+// POST - Subscribe to push notifications
+router.post('/push/subscribe', (req, res) => {
+  const subscription = req.body;
+  
+  if (!subscription || !subscription.endpoint) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Invalid subscription object' 
+    });
+  }
+
+  // Store subscription (use endpoint as unique identifier)
+  subscriptions.set(subscription.endpoint, subscription);
+  
+  console.log('✅ New push subscription:', subscription.endpoint);
+  
+  res.status(201).json({ 
+    success: true,
+    message: 'Push subscription added successfully',
+    subscribersCount: subscriptions.size
+  });
+});
+
+// POST - Unsubscribe from push notifications
+router.post('/push/unsubscribe', (req, res) => {
+  const { endpoint } = req.body;
+  
+  if (!endpoint) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Endpoint required' 
+    });
+  }
+
+  if (subscriptions.has(endpoint)) {
+    subscriptions.delete(endpoint);
+    console.log('🔕 Push subscription removed:', endpoint);
+    res.json({ 
+      success: true,
+      message: 'Push subscription removed successfully',
+      subscribersCount: subscriptions.size
+    });
+  } else {
+    res.status(404).json({ 
+      success: false,
+      error: 'Subscription not found' 
+    });
+  }
+});
+
+// POST - Send push notification to all subscribers
+router.post('/push/send', async (req, res) => {
+  const { title, body, data, icon, badge } = req.body;
+
+  if (!title || !body) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Title and body required' 
+    });
+  }
+
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon: icon || '/logo.png',
+    badge: badge || '/badge.png',
+    data: data || {},
+    timestamp: Date.now()
+  });
+
+  const results = [];
+  const failedSubscriptions = [];
+
+  // Send to all subscribers
+  for (const [endpoint, subscription] of subscriptions.entries()) {
+    try {
+      await webpush.sendNotification(subscription, payload);
+      results.push({ endpoint, status: 'success' });
+      console.log('📬 Push sent to:', endpoint.substring(0, 50) + '...');
+    } catch (error) {
+      console.error('❌ Push failed for:', endpoint.substring(0, 50) + '...', error.message);
+      results.push({ endpoint, status: 'failed', error: error.message });
+      
+      // Remove invalid subscriptions (expired or revoked)
+      if (error.statusCode === 404 || error.statusCode === 410) {
+        failedSubscriptions.push(endpoint);
+      }
+    }
+  }
+
+  // Clean up failed subscriptions
+  failedSubscriptions.forEach(endpoint => {
+    subscriptions.delete(endpoint);
+    console.log('🗑️ Removed expired subscription:', endpoint.substring(0, 50) + '...');
+  });
+
+  const successful = results.filter(r => r.status === 'success').length;
+  const failed = results.filter(r => r.status === 'failed').length;
+
+  res.json({
+    success: true,
+    message: 'Push notifications sent',
+    stats: {
+      total: subscriptions.size + failedSubscriptions.length,
+      successful,
+      failed,
+      remainingSubscribers: subscriptions.size
+    },
+    results
+  });
+});
+
+// POST - Send push notification to specific application user
+router.post('/push/send-to-application', async (req, res) => {
+  const { applicationId, title, body, data } = req.body;
+
+  if (!applicationId || !title || !body) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'applicationId, title, and body required' 
+    });
+  }
+
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon: '/logo.png',
+    badge: '/badge.png',
+    data: { 
+      applicationId, 
+      url: `/applications/${applicationId}`,
+      ...data 
+    },
+    timestamp: Date.now()
+  });
+
+  // In production, look up user's subscription from database
+  // For demo, send to all subscribers
+  let sent = 0;
+  for (const [endpoint, subscription] of subscriptions.entries()) {
+    try {
+      await webpush.sendNotification(subscription, payload);
+      sent++;
+    } catch (error) {
+      console.error('Push notification error:', error.message);
+    }
+  }
+
+  res.json({ 
+    success: sent > 0,
+    message: sent > 0 ? 'Push notification sent' : 'No active subscribers',
+    sent,
+    total: subscriptions.size
+  });
+});
+
+// GET - Get push subscriber count
+router.get('/push/subscribers/count', (req, res) => {
+  res.json({ 
+    success: true,
+    subscribersCount: subscriptions.size,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// POST - Test push notification
+router.post('/push/test', async (req, res) => {
+  if (subscriptions.size === 0) {
+    return res.json({
+      success: false,
+      message: 'No active push subscribers',
+      subscribersCount: 0
+    });
+  }
+
+  const payload = JSON.stringify({
+    title: '🧪 Test Notification from e-Nagarika',
+    body: 'This is a test push notification. Your setup is working perfectly!',
+    icon: '/logo.png',
+    badge: '/badge.png',
+    data: { test: true },
+    timestamp: Date.now()
+  });
+
+  let sent = 0;
+  for (const [endpoint, subscription] of subscriptions.entries()) {
+    try {
+      await webpush.sendNotification(subscription, payload);
+      sent++;
+    } catch (error) {
+      console.error('Test notification failed:', error.message);
+    }
+  }
+
+  res.json({ 
+    success: sent > 0,
+    message: `Test notifications sent to ${sent} subscriber(s)`,
+    sent,
+    total: subscriptions.size
+  });
 });
 
 module.exports = router;

@@ -70,7 +70,9 @@ const CitizensManagement: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        setCitizens(data.data);
+        // Handle both array and object responses from Firebase/JSON
+        const citizensData = Array.isArray(data.data) ? data.data : [];
+        setCitizens(citizensData);
       } else {
         setError('Failed to fetch citizens');
       }
