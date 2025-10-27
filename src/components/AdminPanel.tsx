@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
+import { ExportApplicationsButton } from "@/components/ExportToExcel";
 import { 
   Users, 
   CreditCard, 
@@ -247,6 +248,7 @@ const AdminPanel: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-2">
+          <ExportApplicationsButton data={filteredApplications} />
           <Link to="/admin/data-viewer">
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Database size={16} className="mr-2" />

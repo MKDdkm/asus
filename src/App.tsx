@@ -20,6 +20,7 @@ import CitizensPage from "./pages/CitizensPage";
 import DashboardPage from "./pages/DashboardPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import DataViewer from "./pages/DataViewer";
+import ExportDemo from "./pages/ExportDemo";
 import NotFound from "./pages/NotFound";
 import AISahayak from "./components/AISahayak";
 
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/admin/data-viewer" element={<DataViewer />} />
                 <Route path="/citizens" element={<CitizensPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/export-demo" element={<ExportDemo />} />
                 <Route path="/feedback/:applicationId" element={<FeedbackPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

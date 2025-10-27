@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, UserPlus, Users } from "lucide-react";
+import { ExportCitizensButton } from "@/components/ExportToExcel";
 
 interface Citizen {
   id: number;
@@ -202,13 +203,16 @@ const CitizensManagement: React.FC = () => {
           </h1>
           <p className="text-gray-600 mt-2">Manage citizen registrations and information</p>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)} 
-          className="flex items-center gap-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          Add New Citizen
-        </Button>
+        <div className="flex gap-2">
+          <ExportCitizensButton data={citizens} />
+          <Button 
+            onClick={() => setShowForm(true)} 
+            className="flex items-center gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add New Citizen
+          </Button>
+        </div>
       </div>
 
       {/* Alerts */}

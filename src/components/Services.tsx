@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import ExportToExcel from "@/components/ExportToExcel";
 import { 
   FileText, 
   CreditCard, 
@@ -13,7 +15,9 @@ import {
   Building,
   Zap,
   Shield,
-  Globe
+  Globe,
+  Download,
+  Database
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +25,34 @@ import { useNavigate } from "react-router-dom";
 const Services = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [citizens, setCitizens] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://asus-2.onrender.com/api';
+
+  const fetchExportData = async () => {
+    try {
+      setLoading(true);
+      // Fetch citizens
+      const citizensRes = await fetch(`${API_BASE_URL}/citizens`);
+      const citizensData = await citizensRes.json();
+      if (citizensData.success) {
+        setCitizens(citizensData.data || []);
+      }
+
+      // Fetch applications
+      const appsRes = await fetch(`${API_BASE_URL}/applications`);
+      const appsData = await appsRes.json();
+      if (appsData.success) {
+        setApplications(appsData.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTransportClick = () => {
     navigate('/services/driving-license');
@@ -289,6 +321,107 @@ const Services = () => {
               </Card>
             );
           })}
+        </div>
+
+        {/* Admin Tools Section - Export Data */}
+        <div className="mt-16 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
+              <Database className="h-6 w-6 text-blue-600" />
+              Admin Tools - Export Data
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Download citizens and applications data as Excel files
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Citizens Export Card */}
+            <Card className="border-blue-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                  <Users className="h-5 w-5" />
+                  Citizens Database
+                </CardTitle>
+                <CardDescription>
+                  Export all registered citizens information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <span className="text-sm font-medium">Total Citizens:</span>
+                  <Badge variant="secondary" className="text-lg">
+                    {loading ? '...' : citizens.length}
+                  </Badge>
+                </div>
+                <ExportToExcel
+                  data={citizens}
+                  filename="citizens_database"
+                  sheetName="Citizens"
+                  buttonText="Download Citizens Excel"
+                  variant="default"
+                  icon={true}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate('/citizens')}
+                >
+                  Manage Citizens →
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Applications Export Card */}
+            <Card className="border-green-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
+                  <FileText className="h-5 w-5" />
+                  Applications Database
+                </CardTitle>
+                <CardDescription>
+                  Export all service applications
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <span className="text-sm font-medium">Total Applications:</span>
+                  <Badge variant="secondary" className="text-lg">
+                    {loading ? '...' : applications.length}
+                  </Badge>
+                </div>
+                <ExportToExcel
+                  data={applications}
+                  filename="applications_database"
+                  sheetName="Applications"
+                  buttonText="Download Applications Excel"
+                  variant="default"
+                  icon={true}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate('/admin')}
+                >
+                  Manage Applications →
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-6">
+            <Button 
+              variant="outline" 
+              onClick={fetchExportData}
+              disabled={loading}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {loading ? 'Loading Data...' : 'Refresh Data'}
+            </Button>
+          </div>
         </div>
 
         {/* Call to Action */}
