@@ -22,17 +22,17 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-border z-50">
+    <header className="fixed top-0 w-full bg-white/98 dark:bg-background/98 backdrop-blur-md border-b border-border shadow-sm z-50">
       <div className="container-width section-padding">
-        <div className="flex items-center justify-between h-24">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             {/* Karnataka Government Logo */}
-            <div className="w-24 h-24 flex items-center justify-center">
+            <div className="w-14 h-14 flex items-center justify-center">
               <img 
                 src="https://th.bing.com/th/id/OIP.v008MMXM_bKmFFcXHhH_BAHaHa?w=192&h=192&c=7&r=0&o=7&cb=12&dpr=1.3&pid=1.7&rm=3" 
                 alt="Karnataka Government Logo" 
-                className="w-24 h-24 rounded-lg object-contain"
+                className="w-14 h-14 rounded-md object-contain"
                 onError={(e) => {
                   // Fallback to placeholder if image fails to load
                   e.currentTarget.style.display = 'none';
@@ -41,25 +41,26 @@ const Header = () => {
               />
               {/* Fallback placeholder (hidden by default) */}
               <div className="hidden">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-md">
-                  <div className="w-16 h-16 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-xl font-bold text-primary">KA</span>
-                  </div>
+                <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center">
+                  <span className="text-lg font-bold text-primary">KA</span>
                 </div>
               </div>
             </div>
-            <h1 className="text-3xl font-bold gradient-text">
-              Karnataka Mitra
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-semibold text-primary">
+                Karnataka Mitra
+              </h1>
+              <p className="text-xs text-muted-foreground">Government of Karnataka</p>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
-                className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
+                className="text-foreground/80 hover:text-primary transition-colors duration-200 font-medium text-sm"
               >
                 {item.label}
               </a>

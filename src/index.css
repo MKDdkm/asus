@@ -2,74 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Karnataka Mitra Design System - Modern Blue & Green Theme */
+/* e-Nagarika Professional Design System - Government Standard */
 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Karnataka Mitra Brand Colors */
-    --primary: 217 91% 60%; /* Blue #2563eb */
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 217 91% 70%;
+    /* Professional Government Colors - India Theme */
+    --primary: 220 90% 45%; /* Professional Blue #0A5EBF */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 220 90% 55%;
     
-    --secondary: 142 76% 45%; /* Green #22c55e */
-    --secondary-foreground: 0 0% 98%;
-    --secondary-glow: 142 76% 55%;
+    --secondary: 32 95% 44%; /* Saffron/Orange #E87722 */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 32 95% 54%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 142 76% 45%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 220 90% 45%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 90% 45%;
 
     --radius: 0.5rem;
+
+    /* Success/Green for approvals */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    --background: 222 47% 11%;
     --foreground: 0 0% 98%;
 
-    --card: 224 71% 4%;
+    --card: 222 47% 11%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 224 71% 4%;
+    --popover: 222 47% 11%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 224 71% 4%;
-    --primary-glow: 217 91% 70%;
+    --primary: 220 90% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 220 90% 55%;
     
-    --secondary: 142 76% 45%;
-    --secondary-foreground: 224 71% 4%;
-    --secondary-glow: 142 76% 55%;
+    --secondary: 32 95% 44%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 32 95% 54%;
 
-    --muted: 215 28% 17%;
+    --muted: 217 32% 17%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 215 28% 17%;
+    --accent: 217 32% 17%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 217 91% 60%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 220 90% 45%;
   }
 
   :root {
@@ -84,20 +88,21 @@
 
     --radius: 0.75rem;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(210 40% 98%));
+    /* Gradients - Professional & Subtle */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(220 85% 50%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(220 80% 52%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(220 20% 97%));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(32 90% 50%) 100%);
     
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-elegant: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.15);
+    /* Shadows - Clean & Professional */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-card: 0 2px 4px -1px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-elegant: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.08);
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Animations - Smooth & Professional */
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-subtle: all 0.2s ease-in-out;
 
     --sidebar-background: 0 0% 98%;
 
@@ -167,20 +172,20 @@
 }
 
 @layer components {
-  /* Custom Components */
+  /* Custom Components - Professional Government Style */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-primary to-primary/90 bg-clip-text text-transparent;
   }
   
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-elegant hover:-translate-y-1;
+    @apply transition-all duration-200 hover:shadow-card hover:translate-y-[-2px];
   }
   
   .section-padding {
     @apply px-4 sm:px-6 lg:px-8;
   }
   
-  .container-width {
+  .container-custom {
     @apply max-w-7xl mx-auto;
   }
 }

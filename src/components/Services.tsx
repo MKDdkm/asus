@@ -73,8 +73,7 @@ const Services = () => {
         t('services.identity.passport'),
         t('services.identity.voterCard')
       ],
-      color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
-      iconColor: "text-blue-600",
+      iconColor: "text-primary",
       badge: "4 Services"
     },
     {
@@ -87,8 +86,7 @@ const Services = () => {
         t('services.financial.pension'),
         t('services.financial.scholarship')
       ],
-      color: "bg-green-50 border-green-200 hover:bg-green-100",
-      iconColor: "text-green-600",
+      iconColor: "text-success",
       badge: "12 Services"
     },
     {
@@ -255,23 +253,23 @@ const Services = () => {
             return (
               <Card
                 key={category.title}
-                className={`${category.color} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer animate-slide-up group`}
+                className="bg-white dark:bg-card border border-border hover:border-primary/30 transition-all duration-200 hover:shadow-card cursor-pointer group"
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={isTransport ? handleTransportClick : isFinancial ? handleFinancialClick : undefined}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`p-3 rounded-lg ${category.iconColor} bg-white shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon size={24} />
+                    <div className={`p-3 rounded-lg ${category.iconColor} bg-primary/5 border border-primary/10 group-hover:bg-primary/10 transition-colors duration-200`}>
+                      <Icon size={22} />
                     </div>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs font-medium">
                       {category.badge}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg font-bold text-foreground">
+                  <CardTitle className="text-lg font-semibold text-foreground">
                     {category.title}
                   </CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">
+                  <CardDescription className="text-sm text-muted-foreground leading-relaxed">
                     {category.description}
                   </CardDescription>
                 </CardHeader>
@@ -324,23 +322,23 @@ const Services = () => {
         </div>
 
         {/* Admin Tools Section - Export Data */}
-        <div className="mt-16 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
-          <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
-              <Database className="h-6 w-6 text-blue-600" />
-              Admin Tools - Export Data
+        <div className="mt-20 p-8 bg-gradient-to-br from-primary/5 via-background to-primary/5 rounded-xl border-2 border-primary/10">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-semibold text-foreground flex items-center justify-center gap-2">
+              <Database className="h-6 w-6 text-primary" />
+              Admin Tools - Data Export
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
-              Download citizens and applications data as Excel files
+            <p className="text-muted-foreground mt-2">
+              Download citizens and applications data in Excel format
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Citizens Export Card */}
-            <Card className="border-blue-200 shadow-lg hover:shadow-xl transition-shadow">
+            <Card className="border-border shadow-sm hover:shadow-card transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-                  <Users className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground text-lg">
+                  <Users className="h-5 w-5 text-primary" />
                   Citizens Database
                 </CardTitle>
                 <CardDescription>
@@ -348,9 +346,9 @@ const Services = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <span className="text-sm font-medium">Total Citizens:</span>
-                  <Badge variant="secondary" className="text-lg">
+                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                  <span className="text-sm font-medium text-foreground">Total Citizens:</span>
+                  <Badge variant="secondary" className="text-base font-semibold">
                     {loading ? '...' : citizens.length}
                   </Badge>
                 </div>
@@ -365,7 +363,7 @@ const Services = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="w-full"
+                  className="w-full hover:bg-primary/5"
                   onClick={() => navigate('/citizens')}
                 >
                   Manage Citizens →
@@ -374,10 +372,10 @@ const Services = () => {
             </Card>
 
             {/* Applications Export Card */}
-            <Card className="border-green-200 shadow-lg hover:shadow-xl transition-shadow">
+            <Card className="border-border shadow-sm hover:shadow-card transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
-                  <FileText className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground text-lg">
+                  <FileText className="h-5 w-5 text-primary" />
                   Applications Database
                 </CardTitle>
                 <CardDescription>
@@ -385,9 +383,9 @@ const Services = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <span className="text-sm font-medium">Total Applications:</span>
-                  <Badge variant="secondary" className="text-lg">
+                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                  <span className="text-sm font-medium text-foreground">Total Applications:</span>
+                  <Badge variant="secondary" className="text-base font-semibold">
                     {loading ? '...' : applications.length}
                   </Badge>
                 </div>
