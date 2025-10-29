@@ -5,7 +5,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const db = req.app.get('db');
-    const citizens = db.getCitizens();
+    const citizens = await db.getCitizens(); // Added await
     res.json({
       success: true,
       data: citizens
@@ -76,17 +76,20 @@ router.post('/', async (req, res) => {
       name_kannada,
       email,
       phone,
+      phone_number: phone_number || phone, // Ensure phone_number is set
       address,
+      address_kannada,
       date_of_birth,
       gender,
       occupation,
       district,
       state: 'Karnataka',
       pincode,
+      aadhaar_number,
       status: 'active'
     };
     
-    const newCitizen = db.addCitizen(citizenData);
+    const newCitizen = await db.addCitizen(citizenData); // Added await
 
     console.log(`✅ New citizen added: ${name} (ID: ${citizen_id})`);
 
@@ -130,6 +133,7 @@ router.put('/:id', async (req, res) => {
       name_kannada,
       email,
       phone,
+      phone_number: phone, // Ensure phone_number is set for MongoDB
       address,
       date_of_birth,
       gender,
@@ -139,7 +143,7 @@ router.put('/:id', async (req, res) => {
       status: status || 'active'
     };
     
-    const updatedCitizen = db.updateCitizen(id, updates);
+    const updatedCitizen = await db.updateCitizen(id, updates); // Added await
     
     if (!updatedCitizen) {
       return res.status(404).json({
@@ -171,7 +175,7 @@ router.delete('/:id', async (req, res) => {
     const db = req.app.get('db');
     const { id } = req.params;
 
-    const deleted = db.deleteCitizen(id);
+    const deleted = await db.deleteCitizen(id); // Added await
     
     if (!deleted) {
       return res.status(404).json({
