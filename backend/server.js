@@ -6,6 +6,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Import database
+const MongoDB = require('./database/mongodb');
+const JSONDatabase = require('./database/json-db');
+
 // Import route modules
 const applicationRoutes = require('./routes/applications');
 const paymentRoutes = require('./routes/payments');
@@ -13,16 +17,25 @@ const notificationRoutes = require('./routes/notifications');
 const adminRoutes = require('./routes/admin');
 const citizenRoutes = require('./routes/citizens');
 const digilockerRoutes = require('./routes/digilocker');
-const JSONDatabase = require('./database/json-db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize JSON database
-const db = new JSONDatabase();
+// Initialize database based on environment
+const USE_MONGODB = process.env.USE_MONGODB === 'true';
 
-// Set database on app for routes to access
-app.set('db', db);
+async function initializeDatabase() {
+  if (USE_MONGODB) {
+    console.log('🔄 Connecting to MongoDB...');
+    await MongoDB.connect();
+    app.set('dbType', 'mongodb');
+  } else {
+    console.log('🔄 Using JSON Database...');
+    const jsonDb = new JSONDatabase();
+    app.set('db', jsonDb);
+    app.set('dbType', 'json');
+  }
+}
 
 // Security middleware
 app.use(helmet({
@@ -126,26 +139,29 @@ app.use('*', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log('🚀 ============================================');
-  console.log('🏛️  e-Nagarika Backend Server Started');
-  console.log('🚀 ============================================');
-  console.log(`📍 Server running on: http://localhost:${PORT}`);
-  console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Database: SQLite (Local)`);
-  console.log('🚀 ============================================');
-  console.log('📋 Available Endpoints:');
-  console.log('   📍 GET  /api/health           - Server status');
-  console.log('   📍 GET  /api/applications     - Get applications');
-  console.log('   📍 POST /api/applications     - Submit application');
-  console.log('   📍 GET  /api/payments         - Get payments');
-  console.log('   📍 POST /api/payments         - Process payment');
-  console.log('   📍 GET  /api/notifications    - Get notifications');
-  console.log('   📍 GET  /api/admin            - Admin dashboard');
-  console.log('   📍 GET  /api/citizens         - Manage citizens');
-  console.log('🚀 ============================================');
-});
+// Start server with database initialization
+async function startServer() {
+  try {
+    // Initialize database first
+    await initializeDatabase();
+    
+    // Then start the server
+    app.listen(PORT, () => {
+      console.log('🚀 ============================================');
+      console.log('🏛️  e-Nagarika Backend Server Started');
+      console.log('🚀 ============================================');
+      console.log(`📍 Server running on: http://localhost:${PORT}`);
+      console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
+      console.log(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📊 Database: ${USE_MONGODB ? 'MongoDB' : 'JSON Database'}`);
+      console.log('🚀 ============================================');
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 module.exports = app;
