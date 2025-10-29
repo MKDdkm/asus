@@ -18,8 +18,9 @@ const citizenSchema = new mongoose.Schema({
   },
   aadhaar_number: {
     type: String,
-    required: true,
+    required: false, // Made optional
     unique: true,
+    sparse: true, // Allows multiple null values
     index: true
   },
   phone_number: {
