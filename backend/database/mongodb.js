@@ -12,12 +12,10 @@ class MongoDB {
     try {
       const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/enagarika';
       
-      await mongoose.connect(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      await mongoose.connect(MONGODB_URI);
 
       console.log('✅ Connected to MongoDB successfully');
+      console.log('📊 Database:', mongoose.connection.name);
       
       mongoose.connection.on('error', (err) => {
         console.error('❌ MongoDB connection error:', err);
