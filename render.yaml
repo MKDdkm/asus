@@ -12,10 +12,6 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: USE_MONGODB
-        value: true
-      - key: MONGODB_URI
-        sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY
