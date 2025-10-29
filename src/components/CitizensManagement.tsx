@@ -88,12 +88,18 @@ const CitizensManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear previous messages
+    setError('');
+    setSuccess('');
+    
     try {
       const url = editingCitizen 
         ? `${API_BASE_URL}/citizens/${editingCitizen.citizen_id}`
         : `${API_BASE_URL}/citizens`;
       
       const method = editingCitizen ? 'PUT' : 'POST';
+      
+      console.log('Submitting citizen:', formData); // Debug log
       
       const response = await fetch(url, {
         method,
@@ -104,18 +110,29 @@ const CitizensManagement: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log('Response:', data); // Debug log
 
       if (data.success) {
-        setSuccess(editingCitizen ? 'Citizen updated successfully!' : 'Citizen added successfully!');
+        const message = editingCitizen ? 'Citizen updated successfully!' : 'Citizen added successfully!';
+        setSuccess(message);
         setShowForm(false);
         setEditingCitizen(null);
         resetForm();
-        fetchCitizens();
+        
+        // Fetch updated list
+        await fetchCitizens();
+        
+        // Scroll to top to show success message (important for mobile)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccess(''), 5000);
       } else {
         setError(data.message || 'Operation failed');
+        console.error('Operation failed:', data);
       }
     } catch (err) {
-      setError('Failed to save citizen');
+      setError('Failed to save citizen. Please check your connection.');
       console.error('Error saving citizen:', err);
     }
   };
@@ -217,14 +234,14 @@ const CitizensManagement: React.FC = () => {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        <Alert className="border-red-200 bg-red-50 animate-in slide-in-from-top">
+          <AlertDescription className="text-red-800 font-semibold">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        <Alert className="border-green-200 bg-green-50 animate-in slide-in-from-top">
+          <AlertDescription className="text-green-800 font-semibold text-lg">{success}</AlertDescription>
         </Alert>
       )}
 
