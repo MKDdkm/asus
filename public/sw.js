@@ -92,6 +92,28 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Fetch event - handle network requests
+self.addEventListener('fetch', (event) => {
+  // Don't cache API requests - always go to network
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return new Response(JSON.stringify({ success: false, message: 'Offline' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
+    return;
+  }
+  
+  // For other requests, use network-first strategy
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
+  );
+});
+
 async function syncApplications() {
   // Sync pending applications when back online
   try {
