@@ -67,29 +67,33 @@ const CitizensManagement: React.FC = () => {
   const fetchCitizens = async () => {
     try {
       setLoading(true);
-      // Add cache-busting timestamp and no-cache headers for mobile
-      const timestamp = new Date().getTime();
-      const response = await fetch(`${API_BASE_URL}/citizens?_t=${timestamp}`, {
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-      const data = await response.json();
+      console.log('🔗 Fetching from:', `${API_BASE_URL}/citizens`);
       
-      console.log('📱 Fetched citizens:', data.data?.length || 0, 'citizens');
+      // Simple fetch without cache-busting that might cause CORS issues
+      const response = await fetch(`${API_BASE_URL}/citizens`);
+      
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('📱 Fetched data:', data);
       
       if (data.success) {
         // Handle both array and object responses from Firebase/JSON
         const citizensData = Array.isArray(data.data) ? data.data : [];
+        console.log('✅ Citizens loaded:', citizensData.length);
         setCitizens(citizensData);
+        setError(''); // Clear any previous errors
       } else {
         setError('Failed to fetch citizens');
       }
     } catch (err) {
-      setError('Failed to connect to backend server');
-      console.error('Error fetching citizens:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to connect: ${errorMsg}`);
+      console.error('❌ Error fetching citizens:', err);
     } finally {
       setLoading(false);
     }
