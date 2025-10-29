@@ -92,7 +92,7 @@ router.post('/', async (req, res) => {
       address,
       address_kannada,
       date_of_birth,
-      gender,
+      gender: gender ? gender.toLowerCase() : 'other', // Normalize gender to lowercase
       occupation,
       district,
       state: 'Karnataka',
@@ -149,7 +149,7 @@ router.put('/:id', async (req, res) => {
       phone_number: phone, // Ensure phone_number is set for MongoDB
       address,
       date_of_birth,
-      gender,
+      gender: gender ? gender.toLowerCase() : undefined, // Normalize gender to lowercase
       occupation,
       district,
       pincode,
