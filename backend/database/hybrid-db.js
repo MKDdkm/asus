@@ -116,8 +116,11 @@ class HybridDatabase {
 
   async addCitizen(citizenData) {
     try {
+      console.log('🔄 addCitizen called, useMongoDBPrimary:', this.useMongoDBPrimary);
+      
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
+        console.log('📊 Attempting MongoDB save...');
         // Map field names to match MongoDB schema (handle both formats)
         const mongoData = {
           citizen_id: citizenData.citizen_id,
@@ -135,15 +138,22 @@ class HybridDatabase {
           state: citizenData.state || 'Karnataka'
         };
         
+        console.log('📝 MongoDB data prepared:', JSON.stringify(mongoData, null, 2));
+        
         const citizen = new Citizen(mongoData);
         const saved = await citizen.save();
+        console.log('✅ MongoDB save successful:', saved._id);
+        
         // Backup to JSON
         this.jsonDB.addCitizen({ ...saved.toObject(), id: saved._id.toString() });
+        console.log('✅ Backup to JSON successful');
+        
         return saved.toObject();
       }
       
       // Try Firebase
       if (this.useFirebase) {
+        console.log('🔥 Attempting Firebase save...');
         const result = await this.firebaseDB.addCitizen(citizenData);
         if (result) {
           this.jsonDB.addCitizen(citizenData);
@@ -152,9 +162,12 @@ class HybridDatabase {
       }
       
       // Fallback to JSON
+      console.log('📄 Falling back to JSON database...');
       return this.jsonDB.addCitizen(citizenData);
     } catch (error) {
-      console.error('Error adding citizen:', error);
+      console.error('❌ Error in addCitizen:', error.message);
+      console.error('❌ Full error:', error);
+      console.log('📄 Using JSON fallback due to error...');
       return this.jsonDB.addCitizen(citizenData);
     }
   }

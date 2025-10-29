@@ -50,6 +50,10 @@ router.get('/:id', async (req, res) => {
 // Add new citizen
 router.post('/', async (req, res) => {
   try {
+    console.log('📥 POST /citizens - Request received');
+    console.log('📱 User-Agent:', req.get('User-Agent'));
+    console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
+    
     const db = req.app.get('db');
     const {
       name,
@@ -66,6 +70,14 @@ router.post('/', async (req, res) => {
       pincode,
       aadhaar_number
     } = req.body;
+
+    if (!name) {
+      console.error('❌ Missing required field: name');
+      return res.status(400).json({
+        success: false,
+        message: 'Name is required'
+      });
+    }
 
     // Generate citizen ID
     const citizen_id = 'CIT' + Date.now().toString().slice(-6);
@@ -89,8 +101,8 @@ router.post('/', async (req, res) => {
       status: 'active'
     };
     
-    const newCitizen = await db.addCitizen(citizenData); // Added await
-
+    console.log('💾 Attempting to save citizen:', citizen_id);
+    const newCitizen = await db.addCitizen(citizenData);
     console.log(`✅ New citizen added: ${name} (ID: ${citizen_id})`);
 
     res.status(201).json({
@@ -99,7 +111,8 @@ router.post('/', async (req, res) => {
       data: newCitizen
     });
   } catch (error) {
-    console.error('Error adding citizen:', error);
+    console.error('❌ Error adding citizen:', error);
+    console.error('❌ Error stack:', error.stack);
 
     res.status(500).json({
       success: false,
