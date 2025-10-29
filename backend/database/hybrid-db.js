@@ -112,7 +112,24 @@ class HybridDatabase {
     try {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
-        const citizen = new Citizen(citizenData);
+        // Map field names to match MongoDB schema (handle both formats)
+        const mongoData = {
+          citizen_id: citizenData.citizen_id,
+          name: citizenData.name,
+          name_kannada: citizenData.name_kannada,
+          aadhaar_number: citizenData.aadhaar_number,
+          phone_number: citizenData.phone_number || citizenData.phone || '',
+          email: citizenData.email || '',
+          date_of_birth: citizenData.date_of_birth || new Date(),
+          gender: citizenData.gender || 'other',
+          address: citizenData.address || '',
+          address_kannada: citizenData.address_kannada,
+          pincode: citizenData.pincode || '',
+          district: citizenData.district || 'Unknown',
+          state: citizenData.state || 'Karnataka'
+        };
+        
+        const citizen = new Citizen(mongoData);
         const saved = await citizen.save();
         // Backup to JSON
         this.jsonDB.addCitizen({ ...saved.toObject(), id: saved._id.toString() });
