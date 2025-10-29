@@ -67,8 +67,18 @@ const CitizensManagement: React.FC = () => {
   const fetchCitizens = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/citizens`);
+      // Add cache-busting timestamp and no-cache headers for mobile
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_BASE_URL}/citizens?_t=${timestamp}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       const data = await response.json();
+      
+      console.log('📱 Fetched citizens:', data.data?.length || 0, 'citizens');
       
       if (data.success) {
         // Handle both array and object responses from Firebase/JSON
@@ -119,11 +129,14 @@ const CitizensManagement: React.FC = () => {
         setEditingCitizen(null);
         resetForm();
         
-        // Fetch updated list
-        await fetchCitizens();
-        
         // Scroll to top to show success message (important for mobile)
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Force refresh the list after a small delay to ensure DB sync
+        setTimeout(async () => {
+          console.log('🔄 Force refreshing citizen list...');
+          await fetchCitizens();
+        }, 500);
         
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(''), 5000);
