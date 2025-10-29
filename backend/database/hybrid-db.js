@@ -90,7 +90,11 @@ class HybridDatabase {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
         const citizen = await Citizen.findOne({ 
-          $or: [{ _id: id }, { aadhaarNumber: id }] 
+          $or: [
+            { _id: id }, 
+            { citizen_id: id }, 
+            { aadhaar_number: id }
+          ] 
         }).lean();
         return citizen;
       }
@@ -158,7 +162,11 @@ class HybridDatabase {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
         const citizen = await Citizen.findOneAndUpdate(
-          { $or: [{ _id: id }, { aadhaarNumber: id }] },
+          { $or: [
+            { _id: id }, 
+            { citizen_id: id }, 
+            { aadhaar_number: id }
+          ] },
           { $set: updates },
           { new: true }
         ).lean();
@@ -190,7 +198,11 @@ class HybridDatabase {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
         const result = await Citizen.findOneAndDelete({
-          $or: [{ _id: id }, { aadhaarNumber: id }]
+          $or: [
+            { _id: id }, 
+            { citizen_id: id }, 
+            { aadhaar_number: id }
+          ]
         });
         
         if (result) {
@@ -211,6 +223,7 @@ class HybridDatabase {
       // Fallback to JSON
       return this.jsonDB.deleteCitizen(id);
     } catch (error) {
+      console.error('Delete citizen error:', error);
       return this.jsonDB.deleteCitizen(id);
     }
   }
