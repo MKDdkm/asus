@@ -1,16 +1,28 @@
 const express = require('express');
 const router = express.Router();
+const Citizen = require('../models/Citizen');
 
 // Get all citizens
 router.get('/', async (req, res) => {
   try {
-    const db = req.app.get('db');
-    const citizens = db.getCitizens();
+    const dbType = req.app.get('dbType');
     
-    res.json({
-      success: true,
-      data: citizens
-    });
+    if (dbType === 'mongodb') {
+      // Use MongoDB
+      const citizens = await Citizen.find().sort({ created_at: -1 });
+      res.json({
+        success: true,
+        data: citizens
+      });
+    } else {
+      // Use JSON Database
+      const db = req.app.get('db');
+      const citizens = db.getCitizens();
+      res.json({
+        success: true,
+        data: citizens
+      });
+    }
   } catch (error) {
     console.error('Error fetching citizens:', error);
     res.status(500).json({
@@ -23,22 +35,46 @@ router.get('/', async (req, res) => {
 // Get citizen by ID
 router.get('/:id', async (req, res) => {
   try {
-    const db = req.app.get('db');
+    const dbType = req.app.get('dbType');
     const { id } = req.params;
     
-    const citizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
-    
-    if (!citizen) {
-      return res.status(404).json({
-        success: false,
-        message: 'Citizen not found'
+    if (dbType === 'mongodb') {
+      // Use MongoDB
+      const citizen = await Citizen.findOne({
+        $or: [
+          { citizen_id: id },
+          { _id: id }
+        ]
+      });
+      
+      if (!citizen) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: citizen
+      });
+    } else {
+      // Use JSON Database
+      const db = req.app.get('db');
+      const citizen = await db.get('SELECT * FROM citizens WHERE citizen_id = ? OR id = ?', [id, id]);
+      
+      if (!citizen) {
+        return res.status(404).json({
+          success: false,
+          message: 'Citizen not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: citizen
       });
     }
-    
-    res.json({
-      success: true,
-      data: citizen
-    });
   } catch (error) {
     console.error('Error fetching citizen:', error);
     res.status(500).json({
@@ -51,54 +87,89 @@ router.get('/:id', async (req, res) => {
 // Add new citizen
 router.post('/', async (req, res) => {
   try {
-    const db = req.app.get('db');
+    const dbType = req.app.get('dbType');
     const {
       name,
       name_kannada,
       email,
       phone,
+      phone_number,
       address,
+      address_kannada,
       date_of_birth,
       gender,
       occupation,
       district,
-      pincode
+      pincode,
+      aadhaar_number
     } = req.body;
 
     // Generate citizen ID
     const citizen_id = 'CIT' + Date.now().toString().slice(-6);
 
-    const citizenData = {
-      citizen_id,
-      name,
-      name_kannada,
-      email,
-      phone,
-      address,
-      date_of_birth,
-      gender,
-      occupation,
-      district,
-      state: 'Karnataka',
-      pincode,
-      status: 'active'
-    };
-    
-    const newCitizen = db.addCitizen(citizenData);
+    if (dbType === 'mongodb') {
+      // Use MongoDB
+      const newCitizen = new Citizen({
+        citizen_id,
+        name,
+        name_kannada: name_kannada || '',
+        aadhaar_number: aadhaar_number || `TEMP-${Date.now()}`,
+        phone_number: phone_number || phone,
+        email: email || '',
+        date_of_birth: date_of_birth ? new Date(date_of_birth) : new Date(),
+        gender: gender || 'male',
+        address,
+        address_kannada: address_kannada || '',
+        pincode,
+        district,
+        state: 'Karnataka'
+      });
 
-    console.log(`✅ New citizen added: ${name} (ID: ${citizen_id})`);
+      await newCitizen.save();
 
-    res.status(201).json({
-      success: true,
-      message: 'Citizen registered successfully',
-      data: newCitizen
-    });
+      console.log(`✅ New citizen added to MongoDB: ${name} (ID: ${citizen_id})`);
+
+      res.status(201).json({
+        success: true,
+        message: 'Citizen registered successfully',
+        data: newCitizen
+      });
+    } else {
+      // Use JSON Database
+      const db = req.app.get('db');
+      const citizenData = {
+        citizen_id,
+        name,
+        name_kannada,
+        email,
+        phone,
+        address,
+        date_of_birth,
+        gender,
+        occupation,
+        district,
+        state: 'Karnataka',
+        pincode,
+        status: 'active'
+      };
+      
+      const newCitizen = db.addCitizen(citizenData);
+
+      console.log(`✅ New citizen added: ${name} (ID: ${citizen_id})`);
+
+      res.status(201).json({
+        success: true,
+        message: 'Citizen registered successfully',
+        data: newCitizen
+      });
+    }
   } catch (error) {
     console.error('Error adding citizen:', error);
 
     res.status(500).json({
       success: false,
-      message: 'Failed to register citizen'
+      message: 'Failed to register citizen',
+      error: error.message
     });
   }
 });
