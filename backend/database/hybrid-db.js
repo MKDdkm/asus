@@ -89,13 +89,15 @@ class HybridDatabase {
     try {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
-        const citizen = await Citizen.findOne({ 
-          $or: [
-            { _id: id }, 
-            { citizen_id: id }, 
-            { aadhaar_number: id }
-          ] 
-        }).lean();
+        // Check if id is a valid MongoDB ObjectId
+        const mongoose = require('mongoose');
+        const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
+        
+        const query = isValidObjectId 
+          ? { $or: [{ _id: id }, { citizen_id: id }, { aadhaar_number: id }] }
+          : { $or: [{ citizen_id: id }, { aadhaar_number: id }] };
+        
+        const citizen = await Citizen.findOne(query).lean();
         return citizen;
       }
       
@@ -161,12 +163,16 @@ class HybridDatabase {
     try {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
+        // Check if id is a valid MongoDB ObjectId
+        const mongoose = require('mongoose');
+        const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
+        
+        const query = isValidObjectId 
+          ? { $or: [{ _id: id }, { citizen_id: id }, { aadhaar_number: id }] }
+          : { $or: [{ citizen_id: id }, { aadhaar_number: id }] };
+        
         const citizen = await Citizen.findOneAndUpdate(
-          { $or: [
-            { _id: id }, 
-            { citizen_id: id }, 
-            { aadhaar_number: id }
-          ] },
+          query,
           { $set: updates },
           { new: true }
         ).lean();
@@ -197,13 +203,15 @@ class HybridDatabase {
     try {
       // Try MongoDB first
       if (this.useMongoDBPrimary) {
-        const result = await Citizen.findOneAndDelete({
-          $or: [
-            { _id: id }, 
-            { citizen_id: id }, 
-            { aadhaar_number: id }
-          ]
-        });
+        // Check if id is a valid MongoDB ObjectId
+        const mongoose = require('mongoose');
+        const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
+        
+        const query = isValidObjectId 
+          ? { $or: [{ _id: id }, { citizen_id: id }, { aadhaar_number: id }] }
+          : { $or: [{ citizen_id: id }, { aadhaar_number: id }] };
+        
+        const result = await Citizen.findOneAndDelete(query);
         
         if (result) {
           this.jsonDB.deleteCitizen(id);
@@ -223,7 +231,7 @@ class HybridDatabase {
       // Fallback to JSON
       return this.jsonDB.deleteCitizen(id);
     } catch (error) {
-      console.error('Delete citizen error:', error);
+      console.error('Delete citizen error:', error.message);
       return this.jsonDB.deleteCitizen(id);
     }
   }
