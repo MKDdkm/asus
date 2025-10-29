@@ -10,30 +10,42 @@ class HybridDatabase {
     this.jsonDB = new JSONDatabase();
     this.firebaseDB = new FirebaseDatabase();
     this.useMongoDBPrimary = false;
-    
-    // Initialize MongoDB connection
-    this.initMongoDB();
+    this.mongoDBInitialized = false;
     
     // Determine which database to use as primary
     this.useFirebase = process.env.USE_FIREBASE === 'true' && this.firebaseDB.isConnected();
     
-    const dbMode = this.useMongoDBPrimary ? 'MongoDB (Primary) + JSON (Backup)' 
-                 : this.useFirebase ? 'Firebase (Primary) + JSON (Backup)' 
-                 : 'JSON (Primary)';
+    // Start MongoDB initialization (async, non-blocking)
+    if (process.env.MONGODB_URI) {
+      this.initMongoDB().catch(err => {
+        console.warn('⚠️ MongoDB initialization failed:', err.message);
+      });
+    }
+    
+    const dbMode = 'Hybrid (MongoDB/Firebase/JSON with auto-fallback)';
     console.log(`📊 Database Mode: ${dbMode}`);
   }
 
   async initMongoDB() {
+    if (this.mongoDBInitialized) {
+      return this.useMongoDBPrimary;
+    }
+    
     try {
       if (process.env.MONGODB_URI) {
         await mongodb.connect();
         this.useMongoDBPrimary = true;
+        this.mongoDBInitialized = true;
         console.log('✅ MongoDB set as primary database');
+        return true;
       }
     } catch (error) {
       console.warn('⚠️ MongoDB initialization failed, using fallback database');
       this.useMongoDBPrimary = false;
+      this.mongoDBInitialized = true;
+      return false;
     }
+    return false;
   }
 
   // Helper method to sync data between databases

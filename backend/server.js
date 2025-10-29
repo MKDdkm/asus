@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import database
-const JSONDatabase = require('./database/json-db');
+const HybridDatabase = require('./database/hybrid-db');
 
 // Import route modules
 const applicationRoutes = require('./routes/applications');
@@ -20,10 +20,10 @@ const digilockerRoutes = require('./routes/digilocker');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize JSON Database
-const db = new JSONDatabase();
+// Initialize Hybrid Database (supports MongoDB, Firebase, and JSON)
+const db = new HybridDatabase();
 app.set('db', db);
-app.set('dbType', 'json');
+app.set('dbType', 'hybrid');
 
 // Security middleware
 app.use(helmet({
