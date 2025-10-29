@@ -26,9 +26,19 @@ const USE_MONGODB = process.env.USE_MONGODB === 'true';
 
 async function initializeDatabase() {
   if (USE_MONGODB) {
-    console.log('🔄 Connecting to MongoDB...');
-    await MongoDB.connect();
-    app.set('dbType', 'mongodb');
+    try {
+      console.log('🔄 Connecting to MongoDB...');
+      await MongoDB.connect();
+      app.set('dbType', 'mongodb');
+      console.log('✅ Using MongoDB as primary database');
+    } catch (error) {
+      console.error('⚠️ MongoDB connection failed, falling back to JSON database');
+      console.error('Error:', error.message);
+      // Fall back to JSON Database
+      const jsonDb = new JSONDatabase();
+      app.set('db', jsonDb);
+      app.set('dbType', 'json');
+    }
   } else {
     console.log('🔄 Using JSON Database...');
     const jsonDb = new JSONDatabase();
