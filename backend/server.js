@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import database
-const MongoDB = require('./database/mongodb');
 const JSONDatabase = require('./database/json-db');
 
 // Import route modules
@@ -21,31 +20,10 @@ const digilockerRoutes = require('./routes/digilocker');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize database based on environment
-const USE_MONGODB = process.env.USE_MONGODB === 'true';
-
-async function initializeDatabase() {
-  if (USE_MONGODB) {
-    try {
-      console.log('🔄 Connecting to MongoDB...');
-      await MongoDB.connect();
-      app.set('dbType', 'mongodb');
-      console.log('✅ Using MongoDB as primary database');
-    } catch (error) {
-      console.error('⚠️ MongoDB connection failed, falling back to JSON database');
-      console.error('Error:', error.message);
-      // Fall back to JSON Database
-      const jsonDb = new JSONDatabase();
-      app.set('db', jsonDb);
-      app.set('dbType', 'json');
-    }
-  } else {
-    console.log('🔄 Using JSON Database...');
-    const jsonDb = new JSONDatabase();
-    app.set('db', jsonDb);
-    app.set('dbType', 'json');
-  }
-}
+// Initialize JSON Database
+const db = new JSONDatabase();
+app.set('db', db);
+app.set('dbType', 'json');
 
 // Security middleware
 app.use(helmet({
@@ -149,29 +127,16 @@ app.use('*', (req, res) => {
   });
 });
 
-// Start server with database initialization
-async function startServer() {
-  try {
-    // Initialize database first
-    await initializeDatabase();
-    
-    // Then start the server
-    app.listen(PORT, () => {
-      console.log('🚀 ============================================');
-      console.log('🏛️  e-Nagarika Backend Server Started');
-      console.log('🚀 ============================================');
-      console.log(`📍 Server running on: http://localhost:${PORT}`);
-      console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
-      console.log(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📊 Database: ${USE_MONGODB ? 'MongoDB' : 'JSON Database'}`);
-      console.log('🚀 ============================================');
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-}
-
-startServer();
+// Start server
+app.listen(PORT, () => {
+  console.log('🚀 ============================================');
+  console.log('🏛️  e-Nagarika Backend Server Started');
+  console.log('🚀 ============================================');
+  console.log(`📍 Server running on: http://localhost:${PORT}`);
+  console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Database: JSON Database`);
+  console.log('🚀 ============================================');
+});
 
 module.exports = app;
